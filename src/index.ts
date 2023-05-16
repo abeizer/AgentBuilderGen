@@ -6,24 +6,43 @@ const actionTemplate = Handlebars.compile(readFileSync('src/templates/ActionNode
 const conditionTemplate = Handlebars.compile(readFileSync('src/templates/ConditionalNode.hbs', 'utf-8').toString());
 const mainScriptTemplate = Handlebars.compile(readFileSync('src/templates/MainScript.hbs', 'utf-8').toString());
 
+enum NodeType {
+    ROOT =  "rootNode",
+    ACTION =  "actionNode",
+    CONDITION = "conditionalNode",
+}
+
 /**
- * Represents a node.
+ * Represents a node with additional info.
  * Some fields come directly from the client config.
  * Others are computed here to make working with templates easier.
  */
 class AgentBuilderNode {
     // from config
+    id: number;
     label: string;
     prompt: string;
     code: string;
+    type: NodeType;
 
+    position: number;
     parent: AgentBuilderNode;
     children: Array<AgentBuilderNode>;
     className: string;
     variableName: string;
 }
 
-const nodes: Map<number, AgentBuilderNode> = new Map<number, AgentBuilderNode>();
+/**
+ * Map of ID : Node
+ * Contains all nodes in the config
+ */
+const nodeMap: Map<number, AgentBuilderNode> = new Map<number, AgentBuilderNode>();
+
+/**
+ * Array of nodes that we will ultimately feed into template.
+ * Nodes appear in this list from the bottom of the tree upwards.
+ */
+const nodeList: Array<AgentBuilderNode> = new Array<AgentBuilderNode>();
 
 /**
  * Returns file path for generated classes
@@ -57,15 +76,18 @@ if(existsSync("./src/output")) {
 cpSync("./src/static-files", "./src/output/lib", {recursive: true});
 
 
-// gather info on each node and generate required files
+// convert json into a better format for this task
 json.nodes.forEach((jsonEntry) => {
 
     const node = new AgentBuilderNode();
 
     // grab data from config
+    node.id = parseInt(jsonEntry.id);
+    node.type = jsonEntry.type as NodeType;
     node.label = jsonEntry.data.label;
     node.prompt = jsonEntry.data.prompt || "";
     node.code = jsonEntry.data.code || "";
+    node.position = jsonEntry.position.x;
 
     // we will populate these later
     node.children = new Array<AgentBuilderNode>();
@@ -74,46 +96,53 @@ json.nodes.forEach((jsonEntry) => {
     const className = generateClassName(node.label);
     node.variableName = className[0].toLowerCase() + className.substring(1);
 
-    // generate classes for leaf nodes. 
-    // don't do anything special for composite nodes.
-    switch(jsonEntry.type) {
-        case "actionNode": {
-            node.className = className;
-            writeFile(getOutputPath(className), actionTemplate(node), () => {});
-            break;
-        }
-        case "conditionalNode": {
-            node.className = className;
-            writeFile(getOutputPath(className), conditionTemplate(node), () => {});
-            break;
-        }
-        default: {
-            node.className = jsonEntry.type[0].toUpperCase() + jsonEntry.type.substring(1);
-        }
-    };
+    if(jsonEntry.type == "actionNode" || jsonEntry.type == "conditionalNode") {
+        // only leaf nodes will have dynamically-created classes
+        node.className = className;
+    }
+    else {
+        node.className = jsonEntry.type[0].toUpperCase() + jsonEntry.type.substring(1);
+    }
 
     // add node to map
-    nodes.set(parseInt(jsonEntry.id), node);
+    nodeMap.set(node.id, node);
 });
 
-
-// populate parent + children
-nodes.forEach( (node, key) => {
-
-    const parentEdge = json.edges.find((edge) => parseInt(edge.target) == key);
-    if(parentEdge) {
-        node.parent = nodes.get(parseInt(parentEdge.source));
-    }
+// We will walk the tree from root node. 
+// We do this to avoid processing orphaned nodes.
+const toProcess: Array<AgentBuilderNode> = new Array<AgentBuilderNode>();
+toProcess.push(nodeMap.get(parseInt(json.nodes.find((node) => node.type == "rootNode").id)));
+while(toProcess.length > 0) {
     
+    const currentNode = toProcess.pop();
+    nodeList.unshift(currentNode);
+
     // find all edges that connect from this node to another node
-    const childEdges = json.edges.filter((edge) => parseInt(edge.source) == key);
-    const children: AgentBuilderNode[] = childEdges.flatMap((edge) => nodes.get(parseInt(edge.target)));
-    node.children.push(...children);
+    const childEdges = json.edges.filter((edge) => parseInt(edge.source) == currentNode.id);
+    const children: AgentBuilderNode[] = childEdges.flatMap((edge) => nodeMap.get(parseInt(edge.target)));
+    children.sort((a,b) => a.position - b.position);
+    children.forEach((child) => {
+        child.parent = currentNode;
+        currentNode.children.push(child);
+        toProcess.push(child);
+    });
 
-});
+    // generate classes if this is a leaf node
+    switch(currentNode.type) {
+        case NodeType.ACTION: {
+            writeFile(getOutputPath(currentNode.className), actionTemplate(currentNode), () => {});
+            break;
+        }
+        case NodeType.CONDITION: {
+            writeFile(getOutputPath(currentNode.className), conditionTemplate(currentNode), () => {});
+            break;
+        }
+    };
+}
 
-console.log(nodes);
-writeFile(getOutputPath("index", false), mainScriptTemplate( {nodes: Array.from(nodes.values()).reverse()} ), (err) => {if (err) console.log(err)});
+// console.log(nodeMap);
+// console.log(nodeList);
+writeFile(getOutputPath("index", false), mainScriptTemplate( {nodes: nodeList} ), (err) => {if (err) console.log(err)});
 
 
 // console.log(JSON.stringify(

@@ -5,7 +5,7 @@ export default abstract class Node
     public name: string;
     protected parent: Node;
     protected children: Array<Node> = new Array<Node>();
-    protected data: Map<string, any > = new Map<string, any>(); // data is only stored at root node
+    protected data: Map<string, any> = new Map<string, any>(); // data is only stored at root node
     protected status: NodeStatus;
 
     constructor(name: string)
