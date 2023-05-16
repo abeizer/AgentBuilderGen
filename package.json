@@ -15,6 +15,7 @@
     "path": "^0.12.7",
     "prismarine-block": "^1.16.3",
     "rg-bot": "^1.10.0",
+    "rg-ctf-utils": "^1.0.5",
     "typescript": "^5.0.4"
   },
   "devDependencies": {

@@ -1,10 +1,10 @@
-import { NodeStatus } from "./NodeStatus";
-import Node from "./Node";
-import RootNode from './RootNode';
-import SequenceNode  from './SequenceNode';
-import SelectorNode from './SelectorNode';
-import ConditionalNode from './ConditionalNode';
-import ActionNode from './ActionNode';
+import { NodeStatus } from "./lib/NodeStatus";
+import Node from "./lib/Node";
+import RootNode from './lib/RootNode';
+import SequenceNode  from './lib/SequenceNode';
+import SelectorNode from './lib/SelectorNode';
+import ConditionalNode from './lib/ConditionalNode';
+import ActionNode from './lib/ActionNode';
 
 
 import { RGBot } from 'rg-bot';
@@ -17,7 +17,7 @@ import { Block } from 'prismarine-block';
 
 {{#nodes}}
     {{~^children~}}
-        import {{className}} from './{{className}}';
+        import {{className}} from './lib/{{className}}';
     {{/children}}
 {{/nodes}}
 
@@ -55,10 +55,9 @@ export function configureBot(bot: RGBot) {
     {{this.parent.variableName}}.addChild(new {{this.className}}());
         {{/if}}
     {{/each}}
-    
+
 {{/if}}
 {{/nodes}}
-
 }
 
 export async function runTurn(bot: RGBot) {

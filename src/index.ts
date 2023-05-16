@@ -29,8 +29,8 @@ const nodes: Map<number, AgentBuilderNode> = new Map<number, AgentBuilderNode>()
 /**
  * Returns file path for generated classes
  */
-function getOutputPath(filename: string) {
-    return `src/output/${filename}.ts`;
+function getOutputPath(filename: string, lib: boolean = true) {
+    return lib ? `src/output/lib/${filename}.ts` : `src/output/${filename}.ts`;
 }
 
 /**
@@ -55,7 +55,7 @@ if(existsSync("./src/output")) {
 }
 
 // copy class files for Node, root, composite nodes, etc. into the output directory 
-cpSync("./src/static-files", "./src/output", {recursive: true});
+cpSync("./src/static-files", "./src/output/lib", {recursive: true});
 
 
 // gather info on each node and generate required files
@@ -114,52 +114,7 @@ nodes.forEach( (node, key) => {
 });
 
 console.log(nodes);
-writeFile(getOutputPath("index"), mainScriptTemplate( {nodes: Array.from(nodes.values()).reverse()} ), (err) => {if (err) console.log(err)});
-
-
-// // then dynamically create user's custom nodes
-// json.nodes.forEach( (node, index) => {
-
-//     // create class for node
-//     switch(node.type) {
-//         case "rootNode" : {
-//             node.data["isRoot"] = true;
-//             node.data["className"] = "RootNode";
-//             node.data["var"] = "behaviorTreeRoot"
-//             break;
-//         }
-//         case "actionNode": {
-//             node.data["isLeaf"] = true;
-//             node.data["className"] = generateClassName(node.data.label);
-//             node.data["var"] = generateVariableName(node.data["className"]);
-//             writeClassFile(node, actionTemplate);
-//             break;
-//         }
-//         case "conditionalNode": {
-//             node.data["isLeaf"] = true;
-//             node.data["className"] = generateClassName(node.data.label);
-//             node.data["var"] = generateVariableName(node.data["className"]);
-//             writeClassFile(node, conditionTemplate);
-//             break;
-//         }
-//         case "sequenceNode" : {
-//             node.data["className"] = "SequenceNode";
-//             node.data["var"] = generateVariableName(generateClassName(node.data.label));
-//             break;
-//         }
-//         case "selectorNode" : {
-//             node.data["className"] = "SelectorNode";
-//             node.data["var"] = generateVariableName(generateClassName(node.data.label));
-//             break;
-//         }
-        
-//         default: { console.log(`Skip file creation for ${node.data.label}`) }
-//     }
-
-// })
-// json.nodes.reverse();
-
-// writeFile(`src/output/index.ts`, mainScriptTemplate(json), (err) => {if (err) console.log(err)});
+writeFile(getOutputPath("index", false), mainScriptTemplate( {nodes: Array.from(nodes.values()).reverse()} ), (err) => {if (err) console.log(err)});
 
 
 // console.log(JSON.stringify(
