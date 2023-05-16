@@ -2,7 +2,6 @@ import * as Handlebars  from "handlebars";
 import { readFileSync, writeFile, cpSync, rmSync, existsSync } from "fs";
 import * as json from './data/tree.json';
 
-// const rootTemplate = readFileSync('src/templates/RootNode.mustache', 'utf-8');
 const actionTemplate = Handlebars.compile(readFileSync('src/templates/ActionNode.hbs', 'utf-8').toString());
 const conditionTemplate = Handlebars.compile(readFileSync('src/templates/ConditionalNode.hbs', 'utf-8').toString());
 const mainScriptTemplate = Handlebars.compile(readFileSync('src/templates/MainScript.hbs', 'utf-8').toString());
