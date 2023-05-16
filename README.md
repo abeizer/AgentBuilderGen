@@ -4,7 +4,7 @@ This project is part of Regression Games' Agent-Builder. Behavior Trees are buil
 
 This project uses the same config as the client to generate code that can be run by the UserCodeService. From this config, we generate classes representing each Action Node and Condition Node created by the user. We do not generate classes representing the Root Node or any Composite Nodes - these Nodes always run the same logic and cannot be customized by the user (aside from a label), so they are instead defined in and copied from `src/static-files`.
 
-Once the requisite files have been written to `src/output`, we generate the file `src/output/index.ts`  containing implementations for `configurBot` (which constructs the tree) and `runTurn` (which calls `execute()` from the Root Node of the tree).
+Once the requisite files have been written to `src/output`, we generate the file `src/output/index.ts`  containing implementations for `configureBot` (which constructs the tree) and `runTurn` (which calls `execute()` from the Root Node of the tree).
 
 ## Running this Project
 
