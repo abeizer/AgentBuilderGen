@@ -1,0 +1,23 @@
+{
+  "name": "mustache-files",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fs": "^0.0.1-security",
+    "handlebars": "^4.7.7",
+    "mustache": "^4.2.0",
+    "path": "^0.12.7",
+    "prismarine-block": "^1.16.3",
+    "rg-bot": "^1.10.0",
+    "typescript": "^5.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.1.3"
+  }
+}

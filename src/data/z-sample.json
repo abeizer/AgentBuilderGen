@@ -1,0 +1,139 @@
+{
+  "nodes": [
+    {
+      "width": 98,
+      "height": 36,
+      "id": "1",
+      "type": "rootNode",
+      "position": { "x": 0, "y": 0 },
+      "deletable": false,
+      "data": {
+        "nodeTypeName": "Root Node",
+        "nodeTypeDescription": "This is the Root Node, from which the rest of the graph is built.",
+        "label": "Root Node"
+      },
+      "positionAbsolute": { "x": 0, "y": 0 }
+    },
+    {
+      "width": 129,
+      "height": 36,
+      "id": "2",
+      "type": "sequenceNode",
+      "position": { "x": 0, "y": 100 },
+      "deletable": false,
+      "data": {
+        "isConnectableTarget": false,
+        "nodeTypeName": "Sequence Node",
+        "nodeTypeDescription": "This is the starting point for your bot's Behavior Tree logic.",
+        "label": "Top Level Sequence Node"
+      },
+      "positionAbsolute": { "x": 0, "y": 100 }
+    },
+    {
+      "width": 115,
+      "height": 36,
+      "id": "3",
+      "type": "selectorNode",
+      "position": { "x": -64.5, "y": 193.5 },
+      "data": {
+        "nodeTypeName": "Selector Node",
+        "nodeTypeDescription": "Selector nodes execute children in order until one of them returns Success or all children return Failure. This is like an OR operator.",
+        "label": "Node 3",
+        "prompt": "",
+        "code": ""
+      },
+      "positionAbsolute": { "x": -64.5, "y": 193.5 }
+    },
+    {
+      "width": 115,
+      "height": 36,
+      "id": "4",
+      "type": "selectorNode",
+      "position": { "x": 39.5, "y": 212 },
+      "data": {
+        "nodeTypeName": "Selector Node",
+        "nodeTypeDescription": "Selector nodes execute children in order until one of them returns Success or all children return Failure. This is like an OR operator.",
+        "label": "Node 4",
+        "prompt": "",
+        "code": ""
+      },
+      "positionAbsolute": { "x": 39.5, "y": 212 }
+    },
+    {
+      "width": 113,
+      "height": 52,
+      "id": "5",
+      "type": "conditionNode",
+      "position": { "x": -144, "y": 292 },
+      "data": {
+        "nodeTypeName": "Condition Node",
+        "nodeTypeDescription": "Condition nodes represent simple checks (e.g., 'is the gripper open?')",
+        "label": "Node 5",
+        "prompt": "",
+        "code": ""
+      },
+      "positionAbsolute": { "x": -144, "y": 292 }
+    },
+    {
+      "width": 94,
+      "height": 52,
+      "id": "6",
+      "type": "actionNode",
+      "position": { "x": -68.5, "y": 302 },
+      "data": {
+        "nodeTypeName": "Action Node",
+        "nodeTypeDescription": "Action nodes represent complex actions (e.g., 'open the door').",
+        "label": "Node 6",
+        "prompt": "",
+        "code": ""
+      },
+      "positionAbsolute": { "x": -68.5, "y": 302 }
+    },
+    {
+      "width": 113,
+      "height": 52,
+      "id": "7",
+      "type": "conditionNode",
+      "position": { "x": 24, "y": 283.5 },
+      "data": {
+        "nodeTypeName": "Condition Node",
+        "nodeTypeDescription": "Condition nodes represent simple checks (e.g., 'is the gripper open?')",
+        "label": "Node 7",
+        "prompt": "",
+        "code": ""
+      },
+      "positionAbsolute": { "x": 24, "y": 283.5 }
+    },
+    {
+      "width": 94,
+      "height": 52,
+      "id": "8",
+      "type": "actionNode",
+      "position": { "x": 88, "y": 348.2999999999997 },
+      "data": {
+        "nodeTypeName": "Action Node",
+        "nodeTypeDescription": "Action nodes represent complex actions (e.g., 'open the door').",
+        "label": "Node 8",
+        "prompt": "",
+        "code": ""
+      },
+      "positionAbsolute": { "x": 88, "y": 348.2999999999997 }
+    }
+  ],
+  "edges": [
+    {
+      "animated": true,
+      "id": "e1-2",
+      "source": "1",
+      "target": "2",
+      "deletable": false
+    },
+    { "animated": true, "id": "3", "source": "2", "target": "3" },
+    { "animated": true, "id": "4", "source": "2", "target": "4" },
+    { "animated": true, "id": "5", "source": "3", "target": "5" },
+    { "animated": true, "id": "6", "source": "3", "target": "6" },
+    { "animated": true, "id": "7", "source": "4", "target": "7" },
+    { "animated": true, "id": "8", "source": "4", "target": "8" }
+  ],
+  "viewport": { "x": 502, "y": -31.39999999999999, "zoom": 2 }
+}

@@ -1,0 +1,76 @@
+import { NodeStatus } from "./NodeStatus";
+import Node from "./Node";
+import RootNode from './RootNode';
+import SequenceNode  from './SequenceNode';
+import SelectorNode from './SelectorNode';
+import ConditionalNode from './ConditionalNode';
+import ActionNode from './ActionNode';
+
+
+import { RGBot } from 'rg-bot';
+import RGCTFUtils, { CTFEvent } from 'rg-ctf-utils';
+import { Vec3 } from 'vec3';
+import { Item } from 'prismarine-item';
+import { Entity } from 'prismarine-entity';
+import { Block } from 'prismarine-block';
+
+
+{{#nodes}}
+    {{~^children~}}
+        import {{className}} from './{{className}}';
+    {{/children}}
+{{/nodes}}
+
+
+const armorManager = require('mineflayer-armor-manager')
+
+{{#nodes}}
+    {{~^parent~}}
+        let {{variableName}}: RootNode;
+    {{/parent}}
+{{/nodes}}
+
+export function configureBot(bot: RGBot) {
+
+    bot.setDebug(false)
+    bot.allowParkour(true)
+    bot.allowDigWhilePathing(true)
+
+    // Load the armor-manager plugin (https://github.com/PrismarineJS/MineflayerArmorManager)
+    bot.mineflayer().loadPlugin(armorManager)
+
+    // construct tree
+{{#nodes}}
+{{#if children}}
+    {{#if parent}}
+    const {{variableName}} = new {{className}}("{{label}}");
+    {{else}}
+    {{variableName}} = new {{className}}("{{label}}", bot); 
+    {{/if}}
+    
+    {{~#each children}}
+        {{#if this.children}}
+    {{this.parent.variableName}}.addChild({{this.variableName}});   
+        {{else}}
+    {{this.parent.variableName}}.addChild(new {{this.className}}());
+        {{/if}}
+    {{/each}}
+    
+{{/if}}
+{{/nodes}}
+
+}
+
+export async function runTurn(bot: RGBot) {
+    try
+    {
+        {{#nodes}}
+            {{^parent}}
+        await {{variableName}}.execute();
+            {{/parent}}
+        {{/nodes}}
+    }
+    catch(err) {
+        console.log("Error Executing Tree: " + JSON.stringify(err))
+    }
+}

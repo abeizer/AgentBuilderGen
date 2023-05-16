@@ -1,0 +1,200 @@
+{
+  "nodes": [
+    {
+      "id": "0",
+      "type": "rootNode",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "label": "My Tree"
+      }
+    },
+    {
+      "id": "1",
+      "type": "selectorNode",
+      "position": { "x": 0, "y": 100 },
+      "data": {
+        "label": "Choose an Action"
+      }
+    },
+    {
+      "id": "2",
+      "type": "sequenceNode",
+      "position": { "x": 0, "y": 200 },
+      "data": {
+        "label" : "Do Action and Reset Wander"
+      }
+    },
+    {
+      "id": "3",
+      "type": "selectorNode",
+      "position": { "x": 0, "y": 300 },
+      "data": {
+        "label" : "Non-Wander Action"
+      }
+    },
+    {
+      "id": "4",
+      "type": "actionNode",
+      "position": { "x": 0, "y": 400 },
+      "data": {
+          "label" : "Finish Mining",
+          "prompt": "Return RUNNING if I am currently mining the \"currentMiningTarget\". Use bot.pathfinder().isMining() and compare \"currentMiningTarget\" to bot.mineflayer().targetDigBlock()",
+          "code" : "public override async execute(): Promise<NodeStatus> {\n        const bot = this.getData<RGBot>(\"bot\");\n        const currentMiningTarget = this.getData<Block>(\"currentMiningTarget\");\n      \n        if (bot.pathfinder().isMining() && bot.mineflayer().targetDigBlock() === currentMiningTarget) {\n          return NodeStatus.RUNNING;\n        }\n      \n        return NodeStatus.FAILURE;\n    }"
+      }
+    },
+    {
+      "id": "5",
+      "type": "sequenceNode",
+      "position": { "x": 100, "y": 400 },
+      "data": {
+          "label" : "Cleanup Inventory Sequence"
+      }
+    },
+    {
+      "id": "6",
+      "type": "conditionalNode",
+      "position": { "x": 100, "y": 500 },
+      "data": {
+          "label" : "Is Inventory Full?",
+          "prompt": "Succeed if my bot's inventory is full",
+          "code" : "public override async execute(): Promise<NodeStatus> {\n        const bot = this.getData<RGBot>(\"bot\");\n        if (bot.isInventorySlotsFull()) {\n          return NodeStatus.SUCCESS;\n        } else {\n          return NodeStatus.FAILURE;\n        }\n      }"
+      }
+    },
+    {
+      "id": "7",
+      "type": "actionNode",
+      "position": { "x": 200, "y": 500 },
+      "data": {
+          "label" : "Cleanup Inventory",
+          "prompt": "Drop every item from my inventory that isn't in the following list: rabbit_hide, apple, wool, leather, chicken, porkchop, poppy, coal, sugar_cane, shroomlight, iron_ingot, rabbit_foot, bread, paper, emerald, bell, compass, golden_apple, magme_cream, gilded_blackstone, ancient_debris",
+          "code" : "public override async execute(): Promise<NodeStatus> \n    {\n        const bot = this.getData<RGBot>(\"bot\");\n        const allowedItems = [\n          \"rabbit_hide\",\n          \"apple\",\n          \"wool\",\n          \"leather\",\n          \"chicken\",\n          \"porkchop\",\n          \"poppy\",\n          \"coal\",\n          \"sugar_cane\",\n          \"shroomlight\",\n          \"iron_ingot\",\n          \"rabbit_foot\",\n          \"bread\",\n          \"paper\",\n          \"emerald\",\n          \"bell\",\n          \"compass\",\n          \"golden_apple\",\n          \"magma_cream\",\n          \"gilded_blackstone\",\n          \"ancient_debris\",\n        ];\n      \n      const inventoryItems = bot.getAllInventoryItems();\n      \n        for (const item of inventoryItems) {\n          if (!allowedItems.includes(item.name)) {\n            await bot.dropAllInventoryItem(item.name);\n          }\n        }\n      \n        return NodeStatus.SUCCESS;\n      }"
+      }
+    },
+    {
+      "id": "8",
+      "type": "actionNode",
+      "position": { "x": 200, "y": 400 },
+      "data": {
+          "label" : "Avoid Teammates",
+          "prompt": "If there are teammates within a range of 5 then move away from the closest one. If there are none, then fail.",
+          "code" : "public override async execute(): Promise<NodeStatus> {\n\n        const bot = this.getData<RGBot>(\"bot\");\n        const myPosition = bot.position();\n        const teammates = bot.getTeammateUsernames(false); // modified\n      \n        let closestTeammate = null;\n        let minDistance = Infinity;\n      \n        for (const teammate of teammates) {\n          const teammateEntity = bot.mineflayer().players[teammate]?.entity;\n          if (teammateEntity) {\n            const distance = myPosition.distanceTo(teammateEntity.position);\n            if (distance < minDistance) {\n              minDistance = distance;\n              closestTeammate = teammateEntity;\n            }\n        }\n        }\n      \n        if (closestTeammate && minDistance <= 5) {\n          console.log(\"avoiding teammate\")\n          const success = await bot.moveAwayFrom(closestTeammate.position, 5);\n          return success ? NodeStatus.SUCCESS : NodeStatus.FAILURE;\n        }\n      \n        return NodeStatus.FAILURE;\n      }"
+      }
+    },
+    {
+      "id": "9",
+      "type": "actionNode",
+      "position": { "x": 300, "y": 400 },
+      "data": {
+          "label" : "Collect Item Drops",
+          "prompt": "If there are any of the following items on the ground nearby, then collect them: rabbit_hide, wool, leather, chicken, porkchop. If there are none, then fail.",
+          "code" : "public override async execute(): Promise<NodeStatus> {\n\n        const bot = this.getData<RGBot>(\"bot\");\n\n        // added more items to list\n        const itemsToCollect = [\"rabbit_hide\", \"apple\", \"wool\", \"leather\", \"chicken\", \"porkchop\", \"coal\", \"shroomlight\", \"iron_ingot\", \"rabbit_foot\"];\n        const originPoint = bot.position();\n      \n        const itemsOnGround = bot.findItemsOnGround({\n          itemNames: itemsToCollect,\n          partialMatch: true, // modified\n          maxDistance: 10,\n          originPoint: originPoint,\n        });\n      \n        if (itemsOnGround.length === 0) {\n          return NodeStatus.FAILURE;\n        }\n\n        console.log(\"collecting drops\")\n        for (const itemOnGround of itemsOnGround) {\n          const success = await bot.collectItemOnGround(itemOnGround.result);\n          if (!success) {\n            return NodeStatus.FAILURE;\n          }\n        }\n      \n        return NodeStatus.SUCCESS;\n    }"
+      }
+    },
+    {
+      "id": "10",
+      "type": "actionNode",
+      "position": { "x": 400, "y": 400 },
+      "data": {
+          "label" : "Loot Closest Chest",
+          "prompt": "Get the variable \"containerToLoot\" which represents a Block, then open the container at that position and withdraw any of the following items: coal, bread, paper, emerald, compass, golden_apple. If I opened the chest, then add the container to the variable \"openedContainers\" and succeed. Otherwise, fail.",
+          "code" : "public override async execute(): Promise<NodeStatus> {\n        const bot = this.getData<RGBot>(\"bot\");\n        const containerToLoot = this.getData<Block>(\"containerToLoot\");\n        const openedContainers = this.getData<Set<string>>(\"openedContainers\") || new Set<string>();\n        \n        if (!containerToLoot) {\n            return NodeStatus.FAILURE;\n        }\n        \n        console.log(\"looting container\")\n\n        await bot.approachBlock(containerToLoot, {reach: 2});\n        const containerWindow = await bot.openContainer(containerToLoot);\n        \n        if (containerWindow) {\n            const itemsToWithdraw = [\"coal\", \"bread\", \"paper\", \"emerald\", \"compass\", \"golden_apple\"];\n            await bot.withdrawItemsFromContainer(containerWindow, {\n                itemNames: itemsToWithdraw,\n                partialMatch: false\n            });\n        \n            await bot.closeContainer(containerWindow);\n        \n            const containerKey = bot.vecToString(containerToLoot.position);\n   openedContainers.add(containerKey);\n            this.setData(\"openedContainers\", openedContainers);\n        \n            return NodeStatus.SUCCESS;\n        } else {\n            return NodeStatus.FAILURE;\n        }\n    }"
+      }
+    },
+    {
+      "id": "11",
+      "type": "sequenceNode",
+      "position": { "x": 500, "y": 400 },
+      "data": {
+          "label" : "Attack Sequence"
+      }
+    },
+    {
+      "id": "12",
+      "type": "actionNode",
+      "position": { "x": 400, "y": 500 },
+      "data": {
+          "label" : "Determine Attack Target",
+          "prompt": "If variable \"currentTarget\" is valid, then return success. Otherwise, find the closest entity of one of the following types and store it in \"currentTarget\": rabbit, sheep, cow, chicken pig. If there are no entities, then fail.",
+          "code" : "public override async execute(): Promise<NodeStatus> {\n        const bot = this.getData<RGBot>(\"bot\");\n        const currentTarget = this.getData<Entity>(\"currentTarget\");\n        \n        if (currentTarget && currentTarget.isValid) {\n            return NodeStatus.SUCCESS;\n        }\n        \n        const targetEntities = [\"rabbit\", \"sheep\", \"cow\", \"chicken\", \"pig\"];\n        const closestEntity = bot.findEntities({\n            entityNames: targetEntities,\n            attackable: true,\n            maxDistance: 30, // modified\n            maxCount: 1,\n            originPoint: bot.position(),\n        });\n        \n        if (closestEntity.length > 0) {\n            console.log(\"found a target to attack\")\n            this.setData(\"currentTarget\", closestEntity[0].result);\n            return NodeStatus.SUCCESS;\n        } else {\n            return NodeStatus.FAILURE;\n        }\n    }"
+      }
+    },
+    {
+      "id": "13",
+      "type": "actionNode",
+      "position": { "x": 500, "y": 500 },
+      "data": {
+          "label" : "Do Attack Target",
+          "prompt": "Attack the \"currentTarget\"",
+          "code" : "public override async execute(): Promise<NodeStatus> {\n        const bot = this.getData<RGBot>(\"bot\");\n        const currentTarget = this.getData<Entity>(\"currentTarget\");\n    \n        if (!bot || !currentTarget) {\n          return NodeStatus.FAILURE;\n        }\n    \n        console.log(\"attacking a target\");\n        const attackSuccess = await bot.attackEntity(currentTarget);\n    \n        if (attackSuccess) {\n          return NodeStatus.SUCCESS;\n        } else {\n          return NodeStatus.FAILURE;\n        }\n    }"
+      }
+    },
+    {
+      "id": "14",
+      "type": "actionNode",
+      "position": { "x": 500, "y": 400 },
+      "data": {
+          "label" : "Dig Closest Valuable Block",
+          "prompt": "Find the closest Block of one of the following types: bell, coal, sugar_cane, shroomlight, iron, emerald, ancient_debris. If there are no blocks, then fail. Otherwise, set selected block as \"currentMiningTarget\" and start digging without await.",
+          "code" : "public override async execute(): Promise<NodeStatus> {\n        const bot = this.getData<RGBot>(\"bot\");\n        const blockTypes = [\"bell\", \"coal\", \"sugar_cane\", \"shroomlight\", \"iron\", \"emerald\", \"ancient_debris\"];\n        const originPoint = bot.position();\n        const foundBlocks = bot.findBlocks({\n            blockNames: blockTypes,\n            partialMatch: true,\n            maxDistance: 30, // modified\n            maxCount: 1,\n            originPoint: originPoint,\n        });\n      \n        if (foundBlocks.length === 0) {\n            return NodeStatus.FAILURE;\n        }\n      \n        const targetBlock = foundBlocks[0].result;\n        this.setData(\"currentMiningTarget\", targetBlock);\n        bot.digBlock(targetBlock).catch(() => {}); // Start digging without await\n        return NodeStatus.SUCCESS;\n    }"
+      }
+    },
+    {
+      "id": "15",
+      "type": "actionNode",
+      "position": { "x": 100, "y": 300 },
+      "data": {
+          "label" : "Reset Wander Distance",
+          "prompt": "Set the value of \"wanderDistance\" to 1",
+          "code" : "public override async execute(): Promise<NodeStatus> {\n        this.setData(\"wanderDistance\", 1);\n        return NodeStatus.SUCCESS;\n    }"
+      }
+    },
+    {
+      "id": "16",
+      "type": "sequenceNode",
+      "position": { "x": 200, "y": 200 },
+      "data": {
+          "label" : "Wander Sequence"
+      }
+    },
+    {
+      "id": "17",
+      "type": "actionNode",
+      "position": { "x": 200, "y": 300 },
+      "data": {
+          "label" : "Increase Wander Distance",
+          "prompt": "If variable \"wanderDistance\" is undefined, then set it to 1. Otherwise, increase its value by 2. Always succeeds.",
+          "code" : "public override async execute(): Promise<NodeStatus> {\n\n        let wanderDistance = this.getData<number>(\"wanderDistance\");\n      \n        if (wanderDistance === undefined) {\n          this.setData(\"wanderDistance\", 1);\n        } else {\n          this.setData(\"wanderDistance\", wanderDistance + 2);\n        }\n      \n        return NodeStatus.SUCCESS;\n    }"
+      }
+    },
+    {
+      "id": "18",
+      "type": "actionNode",
+      "position": { "x": 300, "y": 300 },
+      "data": {
+          "label" : "Wander",
+          "prompt": "Wander in a random direction with a distance of \"wanderDistance\"",
+          "code" : "public override async execute(): Promise<NodeStatus> {\n        const bot = this.getData<RGBot>(\"bot\");\n        let wanderDistance = this.getData<number>(\"wanderDistance\");\n        if(wanderDistance === undefined) { // modified\n            wanderDistance = 1;\n        }\n        \n        const success = await bot.wander(wanderDistance, wanderDistance);\n        return success ? NodeStatus.SUCCESS : NodeStatus.FAILURE;\n    }"
+      }
+    }
+  ],
+  "edges": [
+    {"id": "0", "source": "0", "target": "1" },
+    {"id": "1", "source": "1", "target": "2" },
+    {"id": "2", "source": "2", "target": "3" },
+    {"id": "3", "source": "3", "target": "4" },
+    {"id": "4", "source": "3", "target": "5" },
+    {"id": "5", "source": "5", "target": "6" },
+    {"id": "6", "source": "5", "target": "7" },
+    {"id": "7", "source": "3", "target": "8" },
+    {"id": "8", "source": "3", "target": "9" },
+    {"id": "9", "source": "3", "target": "10" },
+    {"id": "10", "source": "3", "target": "11" },
+    {"id": "11", "source": "11", "target": "12" },
+    {"id": "12", "source": "11", "target": "13" },
+    {"id": "13", "source": "3", "target": "14" },
+    {"id": "14", "source": "2", "target": "15" },
+    {"id": "15", "source": "1", "target": "16" },
+    {"id": "16", "source": "16", "target": "17" },
+    {"id": "17", "source": "16", "target": "18" }
+  ]
+}
