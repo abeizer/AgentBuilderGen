@@ -10,6 +10,7 @@ enum NodeType {
     ROOT =  "rootNode",
     ACTION =  "actionNode",
     CONDITION = "conditionalNode",
+    DECORATOR = "decoratorNode" 
 }
 
 /**
@@ -20,16 +21,17 @@ enum NodeType {
 class AgentBuilderNode {
     // from config
     id: number;
-    label: string;
-    prompt: string;
-    code: string;
     type: NodeType;
-
+    label?: string;
+    prompt?: string;
+    code?: string;
     position: number;
+
     parent: AgentBuilderNode;
     children: Array<AgentBuilderNode>;
     className: string;
     variableName: string;
+    isDecorator: boolean = false;
 }
 
 /**
@@ -84,7 +86,8 @@ json.nodes.forEach((jsonEntry) => {
     // grab data from config
     node.id = parseInt(jsonEntry.id);
     node.type = jsonEntry.type as NodeType;
-    node.label = jsonEntry.data.label;
+    node.isDecorator = node.type == NodeType.DECORATOR;
+    node.label = jsonEntry.data.label || `Node ${node.id}`;
     node.prompt = jsonEntry.data.prompt || "";
     node.code = jsonEntry.data.code || "";
     node.position = jsonEntry.position.x;
@@ -96,9 +99,12 @@ json.nodes.forEach((jsonEntry) => {
     const className = generateClassName(node.label);
     node.variableName = className[0].toLowerCase() + className.substring(1);
 
-    if(jsonEntry.type == "actionNode" || jsonEntry.type == "conditionalNode") {
+    if(node.type == NodeType.ACTION || node.type == NodeType.CONDITION) {
         // only leaf nodes will have dynamically-created classes
         node.className = className;
+    }
+    else if(node.type == NodeType.DECORATOR) {
+        node.className = jsonEntry.data.subtype[0].toUpperCase() + jsonEntry.data.subtype.substring(1);
     }
     else {
         node.className = jsonEntry.type[0].toUpperCase() + jsonEntry.type.substring(1);

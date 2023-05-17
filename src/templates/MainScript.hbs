@@ -6,6 +6,11 @@ import SelectorNode from './lib/SelectorNode';
 import ConditionalNode from './lib/ConditionalNode';
 import ActionNode from './lib/ActionNode';
 
+// Decorators
+import AlwaysSucceed from './lib/AlwaysSucceed';
+import AlwaysFail from './lib/AlwaysFail';
+import Invert from './lib/Invert';
+
 
 import { RGBot } from 'rg-bot';
 import RGCTFUtils, { CTFEvent } from 'rg-ctf-utils';
@@ -41,6 +46,7 @@ export function configureBot(bot: RGBot) {
 
     // construct tree
 {{#nodes}}
+{{^isDecorator}}
 {{#if children}}
     {{#if parent}}
     const {{variableName}} = new {{className}}("{{label}}");
@@ -50,13 +56,18 @@ export function configureBot(bot: RGBot) {
     
     {{~#each children}}
         {{#if this.children}}
+            {{#if this.isDecorator}}
+    {{this.parent.variableName}}.addChild(new {{this.className}}(new {{this.children.0.className}}()));
+            {{else}}
     {{this.parent.variableName}}.addChild({{this.variableName}});   
+            {{/if}}
         {{else}}
     {{this.parent.variableName}}.addChild(new {{this.className}}());
         {{/if}}
     {{/each}}
 
 {{/if}}
+{{/isDecorator}}
 {{/nodes}}
 }
 
@@ -70,6 +81,6 @@ export async function runTurn(bot: RGBot) {
         {{/nodes}}
     }
     catch(err) {
-        console.log("Error Executing Tree: " + JSON.stringify(err))
+        console.log("Error Executing Tree: ", err)
     }
 }
