@@ -1,15 +1,15 @@
-import { NodeStatus } from "./lib/NodeStatus";
-import Node from "./lib/Node";
-import RootNode from './lib/RootNode';
-import SequenceNode  from './lib/SequenceNode';
-import SelectorNode from './lib/SelectorNode';
-import ConditionalNode from './lib/ConditionalNode';
-import ActionNode from './lib/ActionNode';
+import { NodeStatus } from "./lib/BaseNodes/NodeStatus";
+import Node from "./lib/BaseNodes/Node";
+import RootNode from './lib/BaseNodes/RootNode';
+import SequenceNode  from './lib/BaseNodes/SequenceNode';
+import SelectorNode from './lib/BaseNodes/SelectorNode';
+import ConditionalNode from './lib/BaseNodes/ConditionalNode';
+import ActionNode from './lib/BaseNodes/ActionNode';
 
 // Decorators
-import AlwaysSucceed from './lib/AlwaysSucceed';
-import AlwaysFail from './lib/AlwaysFail';
-import Invert from './lib/Invert';
+import AlwaysSucceed from './lib/BaseNodes/Decorators/AlwaysSucceed';
+import AlwaysFail from './lib/BaseNodes/Decorators/AlwaysFail';
+import Invert from './lib/BaseNodes/Decorators/Invert';
 
 
 import { RGBot } from 'rg-bot';

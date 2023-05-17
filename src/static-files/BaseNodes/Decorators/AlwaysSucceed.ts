@@ -1,5 +1,5 @@
-import Node from "./Node";
-import { NodeStatus } from "./NodeStatus";
+import Node from "../Node";
+import { NodeStatus } from "../NodeStatus";
 
 /**
  * Returns RUNNING if the child is RUNNING.
