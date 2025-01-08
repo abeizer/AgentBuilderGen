@@ -1,10 +1,17 @@
 # Agent Builder Generator
 
-This project is part of Regression Games' Agent-Builder. Behavior Trees are built using a visual tool from the client. From this UI, users can construct a tree and populate logic for nodes using GPT. A `json` config stores data required to display the tree using `reactflow`.
+This project was used to PoC a code-generation feature for [Regression Games'](https://www.regression.gg/) visual Behavior Tree Builder. 
+The Builder allowed users to create bots for Minecraft, using [reactflow](https://www.npmjs.com/package/reactflow) to drag and drop nodes into a tree and an LLM to populate node logic.
+`reactflow` stores the tree's structure and node contents as a JSON object. This was pushed to RG's server on save, where it could be fetched to re-display the tree in the RG webclient.
+We wanted to be able to use this tree config to reconstruct the tree in-code, such that we could run it in our system. A sample config can be found under `src/data`.
 
-This project uses the same config as the client to generate code that can be run by the UserCodeService. This project uses a sample config located in `src/data`. From this config, we generate classes representing each Action Node and Condition Node created by the user. We do not generate classes representing the Root Node or any Composite Nodes - these Nodes always run the same logic and cannot be customized by the user (aside from a label), so they are instead defined in and copied from `src/static-files`.
+This project uses mustache templates to generate Typescript code representing a user-defined tree:
+- Classes are generated to represent each Action and Condition Node in the tree. These classes are output to `src/output`. 
+- Root and Composite Nodes always run the same logic and could not be customized by the user (aside from the node's label), so these are static files located under `src/static-files`.
+- `src/output/index.ts` assembles the tree and provides an entrypoint.
+  The `configureBot` and `runTurn` implementations here were specific to RG systems - `configureBot` was called before running the bot (in this case, we used it to construct the tree), and `runTurn` was called once every in-game tick (we used this to call into the Root Node of the tree).
 
-Once the requisite files have been written to `src/output`, we generate the file `src/output/index.ts`  containing implementations for `configureBot` (which constructs the tree) and `runTurn` (which calls `execute()` from the Root Node of the tree).
+This project was originally created to demonstrate how code generation could be accomplished using the `reactflow` config. This logic was then moved to a Kotlin module in RG's backend.
 
 ## Running this Project
 
